@@ -1,0 +1,73 @@
+.createform {
+   display: flex;
+   justify-content: center; /* 수평 중앙 정렬 */
+   align-items: center; /* 수직 중앙 정렬 */
+   flex-direction: column; /* 요소를 세로 방향으로 배치 */
+}
+
+.contentinput {
+   background-color: #fff;
+   border: 1px solid #4ea0ff;
+   border-radius: 4px;
+   width: 600px;
+   font-size: large;
+   text-align: center;
+   padding: 10px;
+}
+
+.buttonwrap {
+   display: flex; /* 플렉스 컨테이너 설정 */
+   justify-content: center; /* 가로 중앙 정렬 */
+   gap: 20px; /* 버튼 간 간격 설정 */
+   margin-top: 20px; /* 위쪽 여백 */
+}
+
+#uploadbutton,
+#registrationbutton,
+#cancelbutton {
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   width: 130px;
+   height: 50px;
+   font-size: 18px;
+   font-weight: bold;
+   border-radius: 8px; /* 모서리 둥글게 */
+   text-align: center;
+   cursor: pointer;
+}
+
+#uploadbutton {
+   background-color: #fff;
+   color: #4ea0ff;
+   border: 1px solid #4ea0ff;
+}
+
+#registrationbutton {
+   background-color: #4ea0ff;
+   color: white;
+   border: none;
+}
+
+#cancelbutton {
+   background-color: #fff;
+   color: red;
+   border: 1px solid #4ea0ff;
+}
+
+.detailbutton {
+   background-color: #fff;
+   color: #4ea0ff;
+   border: 1px solid #4ea0ff;
+   font-size: 16px;
+   border-radius: 10px;
+   margin-right: 10px;
+   height: 30px;
+   cursor: pointer;
+}
+
+.detailbutton:hover {
+   background-color: #4ea0ff; /* hover 상태 배경색 */
+   color: #fff; /* hover 상태 텍스트 색 */
+   transform: scale(1.05); /* 버튼 확대 효과 */
+}

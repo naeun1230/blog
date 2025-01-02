@@ -1,0 +1,94 @@
+.board-container {
+   max-width: 800px;
+   margin: 0 auto;
+   padding: 20px;
+   border: 1px solid #4ea0ff;
+   border-radius: 10px;
+}
+
+.board-title {
+   font-size: 24px;
+   text-align: center;
+   margin-bottom: 40px;
+   color: #333;
+}
+
+.board-table {
+   width: 100%;
+   border-collapse: collapse;
+   margin-bottom: 20px;
+}
+
+.board-table th,
+.board-table td {
+   border-bottom: 1px solid #ddd;
+   text-align: center;
+   padding: 10px;
+}
+
+.board-table th {
+   background-color: #fff;
+   font-weight: bold;
+}
+
+.board-table td {
+   font-size: 14px;
+   color: #555;
+}
+
+.board-table th:nth-child(1),
+.board-table td:nth-child(1) {
+   width: 10%; /* 번호 칸의 너비를 10%로 설정 */
+   text-align: center; /* 번호를 가운데 정렬 */
+}
+
+.board-table th:nth-child(2),
+.board-table td:nth-child(2) {
+   width: 50%; /* 제목 칸 */
+}
+
+.board-table th:nth-child(3),
+.board-table td:nth-child(3) {
+   width: 20%; /* 작성자 칸 */
+}
+
+.board-table th:nth-child(4),
+.board-table td:nth-child(4) {
+   width: 20%; /* 작성일 칸 */
+}
+
+.board-link {
+   text-decoration: none;
+   color: #4ea0ff;
+}
+
+.board-link:hover {
+   text-decoration: underline;
+}
+
+.pagination {
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   gap: 10px;
+   margin-top: 20px;
+}
+
+.pagination-button {
+   padding: 5px 10px;
+   border-radius: 5px;
+   border: none;
+   background-color: #4ea0ff;
+   color: white;
+   cursor: pointer;
+}
+
+.pagination-button:disabled {
+   background-color: #ddd;
+   cursor: not-allowed;
+}
+
+.pagination-info {
+   font-size: 14px;
+   color: #333;
+}
