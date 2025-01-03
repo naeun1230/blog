@@ -59,14 +59,14 @@ const PostForm = ({ onSubmit, initialValues = {} }) => {
          const formData = new FormData()
          formData.append('title', title)
          formData.append('content', content)
-         formData.append('removeImage', isImageRemoved)
+         formData.append('removeImg', isImageRemoved) // 이미지 삭제 여부 추가
 
          if (imgFile) {
             const encodedFile = new File([imgFile], encodeURIComponent(imgFile.name), { type: imgFile.type })
-            formData.append('img', encodedFile)
+            formData.append('img', encodedFile) // 업로드된 파일 추가
          }
 
-         onSubmit(formData)
+         onSubmit(formData) // 부모 컴포넌트에 데이터 전달
       },
       [title, content, imgFile, isImageRemoved, onSubmit]
    )

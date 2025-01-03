@@ -41,16 +41,14 @@ const upload = multer({
 //게시물 등록
 router.post('/', isLoggedIn, upload.single('img'), async (req, res) => {
    try {
-      console.log('파일 정보:', req.file)
-      if (!req.file) {
-         return res.status(400).json({ success: false, message: '파일 업로드에 실패했습니다.' })
-      }
+      // 이미지가 없는 경우 img 필드를 null 또는 빈 문자열로 처리
+      const imgPath = req.file ? `/${req.file.filename}` : null
 
-      //게시물 생성
+      // 게시물 생성
       const post = await Post.create({
-         title: req.body.title, //게시물 제목
-         content: req.body.content, //게시물 내용
-         img: `/${req.file.filename}`, //이미지 url
+         title: req.body.title, // 게시물 제목
+         content: req.body.content, // 게시물 내용
+         img: imgPath, // 이미지 url (없으면 null)
          UserId: req.user.id,
          nick: req.user.nick,
          profile: req.user.profile,
@@ -75,34 +73,38 @@ router.post('/', isLoggedIn, upload.single('img'), async (req, res) => {
    }
 })
 
-//게시물 수정
+// 게시물 수정
 router.put('/:id', isLoggedIn, upload.single('img'), async (req, res) => {
    try {
-      //게시물 존재 여부 확인
       const post = await Post.findOne({ where: { id: req.params.id, UserId: req.user.id } })
       if (!post) {
          return res.status(404).json({ success: false, message: '게시물을 찾을 수 없습니다.' })
       }
 
-      //게시물 수정
+      const { title, content, removeImg } = req.body
+      let imgPath = post.img
+
+      if (removeImg === 'true') {
+         imgPath = null // 이미지 경로 제거
+         const fs = require('fs')
+         if (post.img) {
+            const filePath = `./uploads${post.img}`
+            if (fs.existsSync(filePath)) {
+               fs.unlinkSync(filePath) // 서버에서 파일 삭제
+            }
+         }
+      } else if (req.file) {
+         imgPath = `/${req.file.filename}` // 새 이미지 업로드 처리
+      }
+
       await post.update({
-         title: req.body.title,
-         content: req.body.content,
-         img: req.file ? `/${req.file.filename}` : post.img,
+         title,
+         content,
+         img: imgPath,
       })
 
-      const updatedPost = await Post.findOne({
-         where: { id: req.params.id },
-         include: [
-            {
-               model: User,
-               attributes: ['id', 'userid', 'nick', 'profile'],
-            },
-         ],
-      })
       res.json({
          success: true,
-         post: updatedPost,
          message: '게시물이 수정되었습니다.',
       })
    } catch (error) {
