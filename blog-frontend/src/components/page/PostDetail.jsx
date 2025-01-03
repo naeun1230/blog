@@ -19,18 +19,22 @@ const PostDetail = () => {
    const totalComments = useSelector((state) => state.comments.totalComments)
 
    useEffect(() => {
-      if (id) {
-         dispatch(fetchPostByIdThunk(id))
+      if (!user) {
+         navigate('/')
       }
-   }, [id, dispatch])
+   }, [user, navigate])
 
    useEffect(() => {
-      dispatch(fetchCommentsThunk({ postId: id }))
-   }, [dispatch, id])
+      if (id) {
+         dispatch(fetchPostByIdThunk(id))
+         dispatch(fetchCommentsThunk({ postId: id }))
+      }
+   }, [id, dispatch])
 
    if (loading) return <p>로딩 중...</p>
    if (error) return <p>오류 발생: {error}</p>
    if (!post) return <p>게시물을 찾을 수 없습니다.</p>
+   if (!user) return null // 사용자 정보가 없으면 렌더링 중단
 
    // 게시물 삭제 핸들러
    const handleDelete = async () => {

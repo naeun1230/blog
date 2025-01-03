@@ -136,24 +136,38 @@ const MyProfile = () => {
                {isOwner && isEditing ? (
                   // 수정 모드
                   <div>
-                     <input type="file" accept="image/*" onChange={handleImageChange} />
-                     {profileImg instanceof File ? (
-                        <div style={{ marginTop: '10px' }}>
-                           <img src={URL.createObjectURL(profileImg)} alt="미리보기" className="profileimg" />
+                     <div style={{ textAlign: 'center' }}>
+                        {profileImg instanceof File ? (
+                           <div style={{ marginTop: '10px' }}>
+                              <img src={URL.createObjectURL(profileImg)} alt="미리보기" className="profileimg" />
+                           </div>
+                        ) : user.profile ? (
+                           <div style={{ marginTop: '10px' }}>
+                              <img src={`http://localhost:8000${user.profile}`} alt="기존 프로필 이미지" className="profileimg" />
+                           </div>
+                        ) : (
+                           <p>이미지가 없습니다.</p>
+                        )}
+                        <div className="profilebuttonwrap">
+                           <label htmlFor="fileInput" className="inputbutton">
+                              변경
+                           </label>
+                           <input type="file" id="fileInput" name="profileImg" accept="image/*" style={{ display: 'none' }} onChange={handleImageChange} />
+                           <button type="button" className="delbutton" onClick={handleDeleteImage}>
+                              삭제
+                           </button>
                         </div>
-                     ) : user.profile ? (
-                        <div style={{ marginTop: '10px' }}>
-                           <img src={`http://localhost:8000${user.profile}`} alt="기존 프로필 이미지" className="profileimg" />
-                        </div>
-                     ) : (
-                        <p>이미지가 없습니다.</p>
-                     )}
-                     <button type="button" onClick={handleDeleteImage} style={{ marginTop: '10px' }}>
-                        이미지 삭제
-                     </button>
-                     <textarea value={profileText} onChange={(e) => setProfileText(e.target.value)} placeholder="프로필 문구를 입력하세요." style={{ width: '100%', height: '50px', marginTop: '10px' }} />
-                     <button onClick={handleSave}>저장</button>
-                     <button onClick={() => setIsEditing(false)}>취소</button>
+                     </div>
+
+                     <div className="profilebuttonwrap">
+                        <input type="text" value={profileText} onChange={(e) => setProfileText(e.target.value)} placeholder="프로필 문구를 50자 이내로 입력하세요." className="comment-input" maxLength={50} style={{ width: '500px' }} />
+                        <button onClick={handleSave} className="inputbutton">
+                           저장
+                        </button>
+                        <button onClick={() => setIsEditing(false)} className="delbutton">
+                           취소
+                        </button>
+                     </div>
                   </div>
                ) : (
                   // 보기 모드
@@ -162,7 +176,11 @@ const MyProfile = () => {
                      <p>{user.profileText || `안녕하세요! ${user.nick}입니다!`}</p>
 
                      {/* 수정 버튼은 로그인한 사용자와 프로필 사용자가 동일한 경우에만 보이도록 설정 */}
-                     {isOwner && <button onClick={() => setIsEditing(true)}>프로필 수정</button>}
+                     {isOwner && (
+                        <button onClick={() => setIsEditing(true)} id="profileeditbutton">
+                           프로필 수정
+                        </button>
+                     )}
                   </>
                )}
             </div>
@@ -171,7 +189,7 @@ const MyProfile = () => {
             <h3>게시글 목록</h3>
             {posts.length > 0 ? (
                posts.map((post) => (
-                  <div key={post.id} style={{ border: '1px solid #ccc', padding: '10px', marginBottom: '10px', cursor: 'pointer' }} onClick={() => handlePostClick(post.id)}>
+                  <div key={post.id} style={{ border: '1px solid #4ea0ff', padding: '10px', marginBottom: '10px', cursor: 'pointer' }} onClick={() => handlePostClick(post.id)}>
                      <h4>{post.title}</h4>
                      <p>작성일: {dayjs(post.createdAt).format('YYYY.MM.DD HH:mm')}</p>
                   </div>

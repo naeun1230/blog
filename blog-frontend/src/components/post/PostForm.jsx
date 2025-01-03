@@ -3,99 +3,71 @@ import { useNavigate } from 'react-router-dom'
 import '../../styles/create.css'
 
 const PostForm = ({ onSubmit, initialValues = {} }) => {
-   const [imgUrl, setImgUrl] = useState(initialValues.img ? `${process.env.REACT_APP_API_URL}${initialValues.img.startsWith('/') ? initialValues.img : '/uploads/posts/' + initialValues.img}` : '')
-
-   // 이미지 경로(파일명 포함)
-   const [imgFile, setImgFile] = useState(null) // 이미지 파일 객체
+   const [imgUrl, setImgUrl] = useState(initialValues.img ? `${process.env.REACT_APP_API_URL}${initialValues.img}` : null)
+   const [imgFile, setImgFile] = useState(null) // 새로 업로드된 이미지 파일
    const [title, setTitle] = useState(initialValues.title || '') // 제목
    const [content, setContent] = useState(initialValues.content || '') // 내용
    const [isImageRemoved, setIsImageRemoved] = useState(false) // 이미지 삭제 여부
    const navigate = useNavigate()
 
-   // 이미지 파일 업로드 및 미리보기
+   // 이미지 파일 변경 핸들러
    const handleImageChange = useCallback((e) => {
       const file = e.target.files && e.target.files[0]
       if (file) {
-         setImgFile(file) // 업로드한 파일 객체 저장
-         setImgUrl(URL.createObjectURL(file)) // 미리보기 URL 설정
+         setImgFile(file) // 파일 객체 저장
+         setImgUrl(URL.createObjectURL(file)) // 로컬 미리보기 URL 설정
          setIsImageRemoved(false) // 이미지 삭제 상태 초기화
       }
    }, [])
 
-   // 이미지 삭제 처리
+   // 이미지 삭제 핸들러
    const handleImageRemove = useCallback(() => {
       setImgFile(null) // 이미지 파일 초기화
       setImgUrl('') // 미리보기 URL 초기화
       setIsImageRemoved(true) // 이미지 삭제 상태 설정
    }, [])
 
-   // 취소
+   // 취소 버튼 핸들러
    const handleCancel = () => {
-      if (window.history.length > 1) {
-         navigate(-1) // 이전 화면으로 이동
-      } else {
-         navigate('/') // 메인 화면으로 이동
-      }
+      navigate(-1) // 이전 페이지로 이동
    }
 
-   // 게시물 전송
+   // 폼 제출 핸들러
    const handleSubmit = useCallback(
       (e) => {
          e.preventDefault()
 
-         if (!title.trim()) {
-            alert('제목을 입력하세요.')
-            return
-         }
-
-         if (!content.trim()) {
-            alert('내용을 입력하세요.')
+         if (!title.trim() || !content.trim()) {
+            alert('제목과 내용을 입력하세요.')
             return
          }
 
          const formData = new FormData()
          formData.append('title', title)
          formData.append('content', content)
-         formData.append('removeImg', isImageRemoved) // 이미지 삭제 여부 추가
+         formData.append('removeImg', isImageRemoved)
 
          if (imgFile) {
             formData.append('img', imgFile) // 업로드된 파일 추가
          }
 
-         onSubmit(formData) // 부모 컴포넌트에 데이터 전달
+         onSubmit(formData) // 부모 컴포넌트로 데이터 전달
       },
       [title, content, imgFile, isImageRemoved, onSubmit]
    )
-
-   // Enter 키 동작 처리
-   const handleKeyDown = (e) => {
-      if (e.key === 'Enter' && e.ctrlKey) {
-         e.preventDefault() // 기본 Enter 동작 방지
-         handleSubmit(e) // 등록 함수 실행
-      } else if (e.key === 'Enter') {
-         e.preventDefault() // 기본 Enter 동작 방지
-         setContent((prevContent) => prevContent + '\n') // 줄바꿈 추가
-      }
-   }
 
    return (
       <form encType="multipart/form-data" className="createform">
          <div>
             <input type="text" placeholder="제목을 입력하세요." value={title} onChange={(e) => setTitle(e.target.value)} className="contentinput" style={{ width: '620px', height: '50px', marginBottom: '20px', textAlign: 'left' }} />
          </div>
+         <div className="contentinput" style={{ padding: '20px', textAlign: 'center' }}>
+            {imgUrl && <img src={imgFile ? URL.createObjectURL(imgFile) : imgUrl} alt="미리보기 이미지" style={{ maxWidth: '100%', maxHeight: '300px', objectFit: 'contain' }} />}
 
-         {/* 이미지와 텍스트를 하나의 border로 감싸는 영역 */}
-         <div className="contentinput" style={{ padding: '20px', textAlign: 'left' }}>
-            {imgUrl && (
-               <div style={{ marginBottom: '10px', textAlign: 'center' }}>
-                  <img src={imgUrl} alt="업로드 이미지 미리보기" style={{ maxWidth: '100%', maxHeight: '300px', objectFit: 'contain', borderRadius: '5px' }} />
-               </div>
-            )}
             <textarea
                placeholder="내용을 입력하세요."
                value={content}
                onChange={(e) => setContent(e.target.value)}
-               onKeyDown={handleKeyDown} // Enter 키 이벤트 처리
                style={{
                   height: '250px',
                   width: '580px',
@@ -104,7 +76,6 @@ const PostForm = ({ onSubmit, initialValues = {} }) => {
                }}
             ></textarea>
          </div>
-
          <div className="buttonwrap">
             <label htmlFor="fileInput" id="uploadbutton">
                이미지 업로드

@@ -86,13 +86,13 @@ router.put('/:id', isLoggedIn, upload.single('img'), async (req, res) => {
          imgPath = null // 이미지 경로 제거
          const fs = require('fs')
          if (post.img) {
-            const filePath = `./uploads/posts/${post.img}`
+            const filePath = path.join(__dirname, '..', post.img) // 정확한 경로로 변환
             if (fs.existsSync(filePath)) {
-               fs.unlinkSync(filePath) // 서버에서 파일 삭제
+               fs.unlinkSync(filePath)
             }
          }
       } else if (req.file) {
-         imgPath = `/${req.file.filename}` // 새 이미지 업로드 처리
+         imgPath = `/uploads/posts/${req.file.filename}` // 정확한 경로로 설정
       }
 
       await post.update({

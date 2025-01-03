@@ -34,3 +34,41 @@
    display: inline-block;
    text-align: center;
 }
+
+#profileeditbutton {
+   background-color: #fff;
+   color: #4ea0ff;
+   border: 1px solid #4ea0ff;
+   border-radius: 5px;
+   width: 110px;
+   height: 30px;
+   cursor: pointer;
+}
+
+.profilebuttonwrap {
+   display: flex; /* 플렉스 컨테이너 설정 */
+   justify-content: center; /* 가로 중앙 정렬 */
+   gap: 10px; /* 버튼 간 간격 설정 */
+   margin-top: 20px; /* 위쪽 여백 */
+   align-items: center;
+}
+
+.inputbutton,
+.delbutton {
+   background-color: #fff;
+   color: #4ea0ff;
+   border: 1px solid #4ea0ff;
+   border-radius: 5px;
+   width: 50px; /* 버튼 너비 동일하게 설정 */
+   height: 40px; /* 버튼 높이 동일하게 설정 */
+   cursor: pointer;
+   padding: 0; /* 내부 여백 초기화 */
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   font-size: 14px;
+}
+
+.delbutton {
+   color: red; /* 삭제 버튼은 텍스트 색만 다르게 설정 */
+}
