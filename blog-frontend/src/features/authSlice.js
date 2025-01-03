@@ -2,11 +2,10 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import { registerUser, loginUser, logoutUser, checkAuthStatus } from '../api/blogApi'
 
 //회원가입 thunk
-export const registerUserThunk = createAsyncThunk('auth/registerUser', async ({ userData, profileImage }, { rejectWithValue }) => {
+export const registerUserThunk = createAsyncThunk('auth/registerUser', async (formData, { rejectWithValue }) => {
    try {
-      // registerUser 함수에 userData와 profileImage를 전달
-      const response = await registerUser(userData, profileImage)
-      return response.data.user // 서버로부터 받은 사용자 데이터 반환
+      const response = await registerUser(formData) // FormData로 데이터 전송
+      return response.data
    } catch (error) {
       return rejectWithValue(error.response?.data?.message || '회원가입 실패')
    }

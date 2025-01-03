@@ -160,10 +160,12 @@ export const getProfileId = async (id) => {
    }
 }
 
-//프로필 수정
-export const updateProfileBio = async (bio) => {
+// 프로필 수정
+export const updateProfile = async (formData) => {
    try {
-      const response = await blogApi.put('/profile', { bio })
+      const response = await blogApi.put('/page/profile', formData, {
+         headers: { 'Content-Type': 'multipart/form-data' },
+      })
       return response
    } catch (error) {
       handleApiError(error)

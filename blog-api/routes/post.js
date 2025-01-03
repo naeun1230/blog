@@ -7,42 +7,40 @@ const { isLoggedIn } = require('./middlewares')
 const router = express.Router()
 const { sequelize } = require('../models') // sequelize 인스턴스 가져오기
 
-//uploads폴더가 없을 경우 새로 생성
-try {
-   fs.readdirSync('uploads') //해당 폴더가 있는지 확인
-} catch (error) {
-   console.log('uploads 폴더가 없어 uploads 폴더를 생성합니다.')
-   fs.mkdirSync('uploads') //폴더 생성
+// 필요한 디렉토리를 생성하는 함수
+const ensureDirectoryExistence = (dir) => {
+   if (!fs.existsSync(dir)) {
+      console.log(`${dir} 디렉토리가 없어 생성합니다.`)
+      fs.mkdirSync(dir, { recursive: true }) // 하위 디렉토리도 생성
+   }
 }
 
-//이미지 업로드를 위한 multer 설정
+// uploads/posts 디렉토리 생성 확인
+ensureDirectoryExistence('uploads/posts')
+
+// Multer 설정
 const upload = multer({
-   //저장할 위치와 파일명 지정
    storage: multer.diskStorage({
-      //cb: multer에 파일을 어디에 저장할지를 알려주는 콜백 함수입니다. 이 함수는 cb(null, 'uploads/')와 같이 호출되며, 'uploads/' 디렉토리에 파일을 저장하도록 multer에 지시합니다.
       destination(req, file, cb) {
-         cb(null, 'uploads/') //uploads폴더에 저장
+         cb(null, 'uploads/posts') // 업로드 위치 설정
       },
       filename(req, file, cb) {
-         const decodedFileName = decodeURIComponent(file.originalname) //파일명 디코딩(한글 파일명 깨짐 방지)
-         const ext = path.extname(decodedFileName) //확장자 추출
-         const basename = path.basename(decodedFileName, ext) //확장자 제거한 파일명 추출
+         const decodedFileName = decodeURIComponent(file.originalname) // 파일명 디코딩
+         const ext = path.extname(decodedFileName) // 확장자 추출
+         const basename = path.basename(decodedFileName, ext) // 확장자 제거한 파일명 추출
 
-         // 파일명 설정: 기존이름 + 업로드 날짜시간 + 확장자
-         // dog.jpg
-         // ex) dog + 1231342432443 + .jpg
-         cb(null, basename + Date.now() + ext)
+         // 파일명: 기존 이름 + 업로드 시간 + 확장자
+         cb(null, `${basename}_${Date.now()}${ext}`)
       },
    }),
-   //파일 크기 제한
-   limits: { fileSize: 5 * 1024 * 1024 },
+   limits: { fileSize: 5 * 1024 * 1024 }, // 파일 크기 제한 (5MB)
 })
 
 //게시물 등록
 router.post('/', isLoggedIn, upload.single('img'), async (req, res) => {
    try {
       // 이미지가 없는 경우 img 필드를 null 또는 빈 문자열로 처리
-      const imgPath = req.file ? `/${req.file.filename}` : null
+      const imgPath = req.file ? `/uploads/posts/${req.file.filename}` : null
 
       // 게시물 생성
       const post = await Post.create({
@@ -88,7 +86,7 @@ router.put('/:id', isLoggedIn, upload.single('img'), async (req, res) => {
          imgPath = null // 이미지 경로 제거
          const fs = require('fs')
          if (post.img) {
-            const filePath = `./uploads${post.img}`
+            const filePath = `./uploads/posts/${post.img}`
             if (fs.existsSync(filePath)) {
                fs.unlinkSync(filePath) // 서버에서 파일 삭제
             }

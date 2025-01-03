@@ -1,124 +1,184 @@
-import { useParams, useNavigate } from 'react-router-dom' // useNavigate 추가
+import React, { useState, useCallback, useEffect } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
-import { useCallback, useEffect, useState } from 'react'
-import { getProfileThunk, getProfileIdThunk } from '../../features/pageSlice'
-import { getPostsByUserId } from '../../api/blogApi'
+import { getProfileThunk, getProfileIdThunk, updateProfileThunk } from '../../features/pageSlice'
+import { getPostsByUserId, updateProfile } from '../../api/blogApi'
 import dayjs from 'dayjs'
 
 const MyProfile = () => {
-   const { id } = useParams() // URL에서 사용자 ID 가져오기
-   const navigate = useNavigate() // useNavigate 훅 사용
-   const dispatch = useDispatch()
-   const { user } = useSelector((state) => state.page) // 사용자 정보 가져오기
-   const [posts, setPosts] = useState([]) // 게시글 상태
-   const [loading, setLoading] = useState(true)
-   const [error, setError] = useState(null)
+   // URL에서 id 파라미터를 가져옵니다.
+   const { id } = useParams()
 
-   // 사용자 프로필 데이터 가져오기
+   // 페이지 이동을 위한 navigate 훅
+   const navigate = useNavigate()
+
+   // Redux의 dispatch와 store에서 page 상태를 가져옵니다.
+   const dispatch = useDispatch()
+
+   // 프로필 데이터
+   const { user, loading, error } = useSelector((state) => state.page)
+
+   // 로그인한 사용자 데이터
+   const { user: authUser } = useSelector((state) => state.auth)
+
+   // 상태 관리
+   const [posts, setPosts] = useState([]) // 게시글 목록
+   const [profileImg, setProfileImg] = useState(null) // 프로필 이미지 파일
+   const [profileText, setProfileText] = useState(user?.profileText || '') // 프로필 문구
+   const [isEditing, setIsEditing] = useState(false) // 프로필 수정 모드 여부
+   const [removeImg, setRemoveImg] = useState(false) // 프로필 이미지 삭제 여부
+
+   // 프로필 데이터를 서버에서 가져오는 함수
    const fetchProfileData = useCallback(() => {
-      if (id) {
-         // 게시물의 이름을 클릭해서 들어온 경우
-         dispatch(getProfileIdThunk(id))
-            .unwrap()
-            .catch((error) => {
-               console.error('사용자 정보 가져오는 중 오류 발생:', error)
-               alert('사용자 정보 가져오기를 실패했습니다.', error)
-            })
-      } else {
-         // navbar의 이름을 클릭해서 들어온 경우
-         dispatch(getProfileThunk())
-            .unwrap()
-            .catch((error) => {
-               console.error('사용자 정보 가져오는 중 오류 발생:', error)
-               alert('사용자 정보 가져오기를 실패했습니다.', error)
-            })
-      }
+      const action = id ? getProfileIdThunk(id) : getProfileThunk()
+      dispatch(action)
+         .unwrap()
+         .catch((error) => {
+            console.error('사용자 정보 가져오는 중 오류 발생:', error)
+         })
    }, [dispatch, id])
 
-   // 사용자 게시글 데이터 가져오기
+   // 게시글 데이터를 서버에서 가져오는 함수
    const fetchPostsData = useCallback(async () => {
       try {
-         setLoading(true)
-         const userId = id || user?.id // URL에 ID가 없으면 로그인한 사용자의 ID 사용
+         const userId = id || user?.id
          if (!userId) return
-
          const response = await getPostsByUserId(userId)
          setPosts(response.data.posts)
       } catch (err) {
          console.error('게시글 가져오는 중 오류 발생:', err)
-         setError(err.message)
-      } finally {
-         setLoading(false)
       }
    }, [id, user?.id])
 
-   // 프로필과 게시글 데이터 가져오기
+   // 컴포넌트가 처음 렌더링될 때 실행되는 함수
    useEffect(() => {
       fetchProfileData()
       fetchPostsData()
    }, [fetchProfileData, fetchPostsData])
 
-   // 게시글 클릭 시 상세 페이지로 이동
+   // user 정보가 업데이트되면 프로필 문구를 기본값으로 설정
+   useEffect(() => {
+      if (user) {
+         setProfileText(user.profileText || `안녕하세요! ${user.nick}입니다!`)
+      }
+   }, [user])
+
+   // 게시글 클릭 시 게시글 상세 페이지로 이동
    const handlePostClick = (postId) => {
-      navigate(`/post/${postId}`) // 게시글 상세 페이지로 이동
+      navigate(`/post/${postId}`)
    }
 
+   // 프로필 이미지 변경 시 실행되는 함수
+   const handleImageChange = (e) => {
+      const file = e.target.files && e.target.files[0]
+      if (file) {
+         setProfileImg(file) // 새 이미지를 상태에 저장
+         setRemoveImg(false) // 이미지 삭제 상태 해제
+      }
+   }
+
+   // 프로필 이미지를 삭제하는 함수
+   const handleDeleteImage = async () => {
+      try {
+         const formData = new FormData()
+         formData.append('removeImg', 'true') // 삭제 요청 데이터 추가
+
+         await updateProfile(formData) // 서버에 이미지 삭제 요청
+         alert('프로필 이미지가 삭제되었습니다.')
+         fetchProfileData() // 최신 프로필 데이터를 다시 불러옴
+      } catch (err) {
+         console.error('프로필 이미지 삭제 중 오류 발생:', err)
+         alert('프로필 이미지 삭제에 실패했습니다.')
+      }
+   }
+
+   // 프로필 수정 내용을 저장하는 함수
+   const handleSave = async () => {
+      const formData = new FormData()
+      formData.append('removeImg', removeImg) // 삭제 여부 추가
+
+      if (profileImg instanceof File) {
+         formData.append('profile', profileImg) // 업로드된 새 이미지 추가
+      }
+
+      const updatedProfileText = profileText.trim() || `안녕하세요! ${user.nick}입니다!`
+      formData.append('profileText', updatedProfileText) // 기본 프로필 문구 설정
+
+      if (removeImg) {
+         formData.append('removeImg', 'true') // 삭제 요청 추가
+      }
+
+      try {
+         await dispatch(updateProfileThunk(formData)).unwrap()
+         alert('프로필이 수정되었습니다.')
+         setIsEditing(false) // 수정 모드 해제
+         fetchProfileData() // 데이터 새로고침
+      } catch (err) {
+         console.error('프로필 수정 중 오류 발생:', err)
+         alert('프로필 수정에 실패했습니다.')
+      }
+   }
+
+   // 로딩 중일 때 표시
    if (loading) return <p>데이터를 불러오는 중입니다...</p>
+
+   // 오류 발생 시 표시
    if (error) return <p>오류 발생: {error}</p>
 
+   // 로그인한 사용자와 프로필 사용자 ID 비교
+   const isOwner = !id || authUser?.id === parseInt(id)
+
    return (
-      <div
-         style={{
-            display: 'flex',
-            justifyContent: 'center', // 수평 정렬
-            alignItems: 'center', // 수직 정렬
-            flexDirection: 'column', // 세로 방향으로 정렬
-         }}
-      >
-         {/* 사용자 정보 */}
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column' }}>
          {user && (
             <div style={{ marginBottom: '20px', borderBottom: '1px solid #ccc', paddingBottom: '10px', textAlign: 'center', width: '1000px' }}>
                <h2>{user.nick}님의 프로필</h2>
-               {user.profile && <img src={user.profile} alt={`${user.nick}`} style={{ width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover' }} />}
-               <p>안녕하세요 {user?.nick}입니다!</p>
-            </div>
-         )}
-
-         {/* 사용자 게시글 목록 */}
-         <div
-            style={{
-               display: 'flex',
-               justifyContent: 'center',
-               alignItems: 'center',
-               paddingBottom: 0,
-            }}
-         >
-            <div
-               style={{
-                  margin: '0 20px 0 20px',
-                  textAlign: 'center',
-                  width: '1000px',
-                  backgroundColor: '#fff',
-                  padding: '0 20px 0 20px',
-                  borderRadius: '10px',
-               }}
-            >
-               <h3>게시글 목록</h3>
-               {posts.length > 0 ? (
-                  posts.map((post) => (
-                     <div
-                        key={post.id}
-                        style={{ border: '1px solid #ccc', padding: '10px', marginBottom: '10px', cursor: 'pointer' }}
-                        onClick={() => handlePostClick(post.id)} // 게시글 클릭 이벤트 추가
-                     >
-                        <h4>{post.title}</h4>
-                        <p>작성일: {dayjs(post.createdAt).format('YYYY.MM.DD HH:mm')}</p>
-                     </div>
-                  ))
+               {isOwner && isEditing ? (
+                  // 수정 모드
+                  <div>
+                     <input type="file" accept="image/*" onChange={handleImageChange} />
+                     {profileImg instanceof File ? (
+                        <div style={{ marginTop: '10px' }}>
+                           <img src={URL.createObjectURL(profileImg)} alt="미리보기" className="profileimg" />
+                        </div>
+                     ) : user.profile ? (
+                        <div style={{ marginTop: '10px' }}>
+                           <img src={`http://localhost:8000${user.profile}`} alt="기존 프로필 이미지" className="profileimg" />
+                        </div>
+                     ) : (
+                        <p>이미지가 없습니다.</p>
+                     )}
+                     <button type="button" onClick={handleDeleteImage} style={{ marginTop: '10px' }}>
+                        이미지 삭제
+                     </button>
+                     <textarea value={profileText} onChange={(e) => setProfileText(e.target.value)} placeholder="프로필 문구를 입력하세요." style={{ width: '100%', height: '50px', marginTop: '10px' }} />
+                     <button onClick={handleSave}>저장</button>
+                     <button onClick={() => setIsEditing(false)}>취소</button>
+                  </div>
                ) : (
-                  <p>게시글이 없습니다.</p>
+                  // 보기 모드
+                  <>
+                     {user.profile ? <img src={`http://localhost:8000${user.profile}`} alt={`${user.nick}`} className="profileimg" /> : <img src="/default-profile.png" alt="기본 프로필" className="profileimg" />}
+                     <p>{user.profileText || `안녕하세요! ${user.nick}입니다!`}</p>
+
+                     {/* 수정 버튼은 로그인한 사용자와 프로필 사용자가 동일한 경우에만 보이도록 설정 */}
+                     {isOwner && <button onClick={() => setIsEditing(true)}>프로필 수정</button>}
+                  </>
                )}
             </div>
+         )}
+         <div style={{ textAlign: 'center', width: '1000px' }}>
+            <h3>게시글 목록</h3>
+            {posts.length > 0 ? (
+               posts.map((post) => (
+                  <div key={post.id} style={{ border: '1px solid #ccc', padding: '10px', marginBottom: '10px', cursor: 'pointer' }} onClick={() => handlePostClick(post.id)}>
+                     <h4>{post.title}</h4>
+                     <p>작성일: {dayjs(post.createdAt).format('YYYY.MM.DD HH:mm')}</p>
+                  </div>
+               ))
+            ) : (
+               <p>게시글이 없습니다.</p>
+            )}
          </div>
       </div>
    )

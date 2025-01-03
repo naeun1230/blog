@@ -11,10 +11,10 @@ import { faComment } from '@fortawesome/free-regular-svg-icons'
 library.add(faComment)
 
 const PostDetail = () => {
-   const { id } = useParams() // URL에서 글 ID 가져오기
-   const navigate = useNavigate() // 페이지 이동을 위한 훅
+   const { id } = useParams()
+   const navigate = useNavigate()
    const dispatch = useDispatch()
-   const { user } = useSelector((state) => state.auth) // 사용자 정보 가져오기
+   const { user } = useSelector((state) => state.auth)
    const { post, loading, error } = useSelector((state) => state.posts)
    const totalComments = useSelector((state) => state.comments.totalComments)
 
@@ -39,7 +39,7 @@ const PostDetail = () => {
          try {
             await dispatch(deletePostThunk(id)).unwrap()
             alert('게시물이 삭제되었습니다.')
-            navigate('/') // 삭제 후 목록 페이지로 이동
+            navigate('/')
          } catch (err) {
             alert(err || '게시물 삭제 중 오류가 발생했습니다.')
          }
@@ -48,7 +48,7 @@ const PostDetail = () => {
 
    // 게시물 수정 핸들러
    const handleEdit = () => {
-      navigate(`/posts/edit/${id}`) // 수정 경로로 이동
+      navigate(`/posts/edit/${id}`)
    }
 
    return (
@@ -72,6 +72,7 @@ const PostDetail = () => {
          >
             {/* 게시물 제목 */}
             <h1 style={{ textAlign: 'center' }}>{post.title}</h1>
+
             <div
                style={{
                   display: 'flex',
@@ -91,7 +92,7 @@ const PostDetail = () => {
                         flexShrink: 0,
                      }}
                   >
-                     <img src={post.User.profile} alt={`${post.User.nick} 프로필`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                     <img src={post.User.profile.startsWith('/uploads/') ? `${process.env.REACT_APP_API_URL}${post.User.profile}` : post.User.profile} alt={`${post.User.nick} 프로필`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   </div>
                   <div style={{ textAlign: 'left' }}>
                      <Link to={`/my/${post.User.id}`} className="board-link" style={{ color: '#555' }}>
@@ -100,7 +101,6 @@ const PostDetail = () => {
                      <p style={{ margin: '0', fontSize: '14px', color: '#888' }}>{dayjs(post.createdAt).format('YYYY.MM.DD HH:mm')}</p>
                   </div>
                </div>
-
                {/* 수정 및 삭제 버튼 */}
                {post.UserId === user.id && (
                   <div>
@@ -113,14 +113,12 @@ const PostDetail = () => {
                   </div>
                )}
             </div>
-
             <hr />
-
             <div style={{ minHeight: '600px' }}>
                {/* 게시물 이미지 */}
                {post.img && (
                   <img
-                     src={`${process.env.REACT_APP_API_URL}${post.img}`}
+                     src={post.img.startsWith('/uploads/posts/') ? `${process.env.REACT_APP_API_URL}${post.img}` : `${process.env.REACT_APP_API_URL}/uploads/posts/${post.img}`}
                      alt={post.title}
                      style={{
                         maxWidth: '600px',
@@ -130,6 +128,7 @@ const PostDetail = () => {
                      }}
                   />
                )}
+
                {/* 게시물 내용 */}
                <p
                   style={{
@@ -142,7 +141,6 @@ const PostDetail = () => {
                   {post.content}
                </p>
             </div>
-
             <hr />
 
             {/* 댓글 */}

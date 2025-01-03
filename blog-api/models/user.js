@@ -21,6 +21,11 @@ module.exports = class User extends Sequelize.Model {
                type: Sequelize.STRING(200),
                allowNull: true,
             },
+            profileText: {
+               // 프로필 문구 필드 추가
+               type: Sequelize.STRING(200),
+               allowNull: true, // 문구는 필수값이 아님
+            },
          },
          {
             sequelize,

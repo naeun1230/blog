@@ -108,6 +108,13 @@
    cursor: pointer;
 }
 
+.profileimg {
+   width: 80px;
+   height: 80px;
+   border-radius: 50%;
+   object-fit: cover;
+}
+
 /* 푸터 설정 */
 footer {
    text-align: center;

@@ -21,9 +21,15 @@ const Signup = () => {
          return
       }
 
-      const userData = { userid, password, nick }
+      const formData = new FormData()
+      formData.append('userid', userid)
+      formData.append('password', password)
+      formData.append('nick', nick)
+      if (profileImage) {
+         formData.append('profile', profileImage) // 이미지 파일 추가
+      }
 
-      dispatch(registerUserThunk({ userData, profileImage }))
+      dispatch(registerUserThunk(formData))
          .unwrap()
          .then(() => {
             navigate('/login') // 회원가입 완료 후 로그인 페이지로 이동

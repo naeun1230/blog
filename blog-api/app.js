@@ -1,5 +1,6 @@
 const express = require('express')
 const path = require('path') // 경로 처리 유틸리티
+const fs = require('fs')
 const cookieParser = require('cookie-parser') // 쿠키 처리 미들웨어
 const morgan = require('morgan') // HTTP 요청 로깅 미들웨어
 const session = require('express-session') // 세션 관리 미들웨어
@@ -20,6 +21,15 @@ const multer = require('multer')
 
 const app = express()
 passportConfig() //passport 실행
+
+const directories = ['uploads/profiles', 'uploads/posts']
+directories.forEach((dir) => {
+   if (!fs.existsSync(dir)) {
+      console.log(`${dir} 디렉토리가 없어 생성합니다.`)
+      fs.mkdirSync(dir, { recursive: true })
+   }
+})
+
 app.set('port', process.env.PORT || 8002)
 
 // 시퀄라이즈를 사용한 DB연결
@@ -40,8 +50,7 @@ app.use(
    })
 )
 app.use(morgan('dev')) // HTTP 요청 로깅 (dev 모드)
-app.use(express.static(path.join(__dirname, 'uploads'))) // 정적 파일 제공
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
+app.use('/uploads', express.static(path.join(__dirname, 'uploads'))) // 정적 파일 제공
 app.use(express.json()) // JSON 데이터 파싱
 app.use(express.urlencoded({ extended: false })) // URL-encoded 데이터 파싱
 app.use(cookieParser(process.env.COOKIE_SECRET)) //쿠키 설정

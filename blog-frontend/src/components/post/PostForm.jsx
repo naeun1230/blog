@@ -3,7 +3,9 @@ import { useNavigate } from 'react-router-dom'
 import '../../styles/create.css'
 
 const PostForm = ({ onSubmit, initialValues = {} }) => {
-   const [imgUrl, setImgUrl] = useState(initialValues.img ? process.env.REACT_APP_API_URL + initialValues.img : '') // 이미지 경로(파일명 포함)
+   const [imgUrl, setImgUrl] = useState(initialValues.img ? `${process.env.REACT_APP_API_URL}${initialValues.img.startsWith('/') ? initialValues.img : '/uploads/posts/' + initialValues.img}` : '')
+
+   // 이미지 경로(파일명 포함)
    const [imgFile, setImgFile] = useState(null) // 이미지 파일 객체
    const [title, setTitle] = useState(initialValues.title || '') // 제목
    const [content, setContent] = useState(initialValues.content || '') // 내용
@@ -13,14 +15,9 @@ const PostForm = ({ onSubmit, initialValues = {} }) => {
    // 이미지 파일 업로드 및 미리보기
    const handleImageChange = useCallback((e) => {
       const file = e.target.files && e.target.files[0]
-      if (!file) return
-
-      setImgFile(file) // 업로드한 파일 객체 저장
-      const reader = new FileReader()
-
-      reader.readAsDataURL(file) // 파일을 Base64 URL로 변환
-      reader.onload = (event) => {
-         setImgUrl(event.target.result) // 이미지 미리보기 URL 설정
+      if (file) {
+         setImgFile(file) // 업로드한 파일 객체 저장
+         setImgUrl(URL.createObjectURL(file)) // 미리보기 URL 설정
          setIsImageRemoved(false) // 이미지 삭제 상태 초기화
       }
    }, [])
@@ -62,8 +59,7 @@ const PostForm = ({ onSubmit, initialValues = {} }) => {
          formData.append('removeImg', isImageRemoved) // 이미지 삭제 여부 추가
 
          if (imgFile) {
-            const encodedFile = new File([imgFile], encodeURIComponent(imgFile.name), { type: imgFile.type })
-            formData.append('img', encodedFile) // 업로드된 파일 추가
+            formData.append('img', imgFile) // 업로드된 파일 추가
          }
 
          onSubmit(formData) // 부모 컴포넌트에 데이터 전달
